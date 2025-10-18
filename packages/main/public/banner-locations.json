@@ -1,0 +1,6 @@
+{
+  "locations": [
+    { "selector": "#banner-slot" },
+    { "selector": ".banner-placeholder" }
+  ]
+}
