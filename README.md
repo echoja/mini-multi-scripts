@@ -5,7 +5,7 @@
 ## 패키지 구성
 
 - `@banner/main`: 사이트 방문자에게 제공되는 메인 스크립트입니다. 페이지 로드시 배너 위치 정보를 JSON으로 받아 지정된 위치 뒤에 하드코딩된 배너를 삽입합니다. `?bannerEditor=1` 같은 특수 search parameter 가 있을 때만 라이브 에디터 모듈을 로드합니다.
-- `@banner/live-editor`: React 기반의 오버레이 UI로, 관리자만 사용할 수 있는 라이브 편집 도구입니다. 페이지 위에서 요소를 선택하고 기본 정보를 확인할 수 있습니다.
+- `@banner/live-editor`: React 기반의 오버레이 UI로, 관리자만 사용할 수 있는 라이브 편집 도구입니다. 커스텀 엘리먼트 `<banner-live-editor>`로 제공되며 Shadow DOM 안에서 렌더링되어 사이트 스타일과 격리됩니다.
 
 ## 개발 환경
 
@@ -35,7 +35,8 @@
    npm run dev:main
    ```
 
-   - 메인 페이지에 접속한 뒤 URL 에 `?bannerEditor=1` 을 추가하면 에디터 모듈이 `http://localhost:5174/src/dev-entry.tsx` 를 통해 동적으로 로드됩니다.
+   - 메인 페이지에 접속한 뒤 URL 에 `?bannerEditor=1` 을 추가하면 에디터 모듈이 `http://localhost:5174/src/live-editor.tsx` 를 `<script type="module">`로 삽입하면서 로드됩니다.
+   - 필요 시 `<script type="module">` 태그를 동적으로 삽입해 라이브 에디터를 불러오며, 커스텀 엘리먼트가 자동으로 등록됩니다.
    - 다른 경로에서 라이브 에디터 모듈을 제공하고 싶다면 `packages/main/.env` 또는 셸 환경변수로 `VITE_LIVE_EDITOR_DEV_ORIGIN` 값을 설정하세요.
 
 ## 빌드 & 배포
@@ -43,7 +44,7 @@
 루트에서 한 번에 두 패키지를 빌드합니다. 커밋 해시가 버전으로 사용되며, 결과물은 `dist/<commit>/` 이하에 모아집니다.
 
 ```bash
-npm run build
+BASE_URL=https://cdn.example.com/banner/<commit>/ npm run build
 ```
 
 - Git 저장소인 경우 현재 커밋 해시(12자리)가 버전으로 사용됩니다. Git 정보가 없으면 `COMMIT_SHA` 환경변수로 명시하거나 기본값 `dev`가 사용됩니다.
@@ -69,7 +70,8 @@ npm run build
 ## 환경 변수 요약
 
 - `COMMIT_SHA`: 빌드 버전을 강제로 지정합니다. (예: CI 환경)
-- `VITE_LIVE_EDITOR_DEV_ORIGIN`: 개발 환경에서 라이브 에디터 모듈을 다른 URL 로부터 로드하고 싶을 때 사용합니다.
+- `BASE_URL`: 빌드 결과물이 배포될 CDN/S3 경로(예: `https://cdn.example.com/banner/latest/`). 설정하면 메인 스크립트가 해당 경로를 기준으로 JSON 및 라이브 에디터 스크립트를 로드합니다. 개발 서버(`npm run dev:main`)는 기본값으로 `/`을 사용합니다.
+- `VITE_LIVE_EDITOR_DEV_ORIGIN`: 개발 환경에서 라이브 에디터 모듈을 다른 URL 로부터 로드하고 싶을 때 사용합니다. 기본값은 `http://localhost:5174/src/live-editor.tsx` 입니다.
 
 ## 참고
 

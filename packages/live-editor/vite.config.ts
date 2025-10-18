@@ -9,8 +9,7 @@ export default defineConfig({
     outDir: "dist",
     emptyOutDir: true,
     lib: {
-      entry: "src/mountLiveEditor.tsx",
-      name: "BannerLiveEditor",
+      entry: "src/live-editor.tsx",
       formats: ["es"],
       fileName: () => "live-editor.js"
     },

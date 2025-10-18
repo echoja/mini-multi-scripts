@@ -11,6 +11,8 @@ const LIVE_EDITOR_TRIGGER_VALUES = new Set(["1", "true", "yes"]);
 
 const version = __BANNER_VERSION__ || "dev";
 
+const normalizedBaseUrl = __BANNER_BASE_URL__.trim();
+
 function createBannerElement(): HTMLElement {
   const container = document.createElement("div");
   container.className = "banner-tool-banner";
@@ -59,54 +61,121 @@ function shouldLoadLiveEditor(): boolean {
   return LIVE_EDITOR_TRIGGER_VALUES.has(param.toLowerCase());
 }
 
-type LiveEditorModule = {
-  mountLiveEditor: (options: { baseUrl: string; version: string }) => void;
-};
+const LIVE_EDITOR_TAG = "banner-live-editor";
+let liveEditorScriptPromise: Promise<void> | null = null;
 
-const scriptElement = document.currentScript as HTMLScriptElement | null;
-const scriptSrc = scriptElement?.src;
-const assetBase = scriptSrc ? new URL("./", scriptSrc).href : window.location.origin + "/";
+function ensureModuleScript(url: string, id: string): Promise<void> {
+  const existing = document.getElementById(id) as HTMLScriptElement | null;
+  if (existing) {
+    return existing.dataset.ready === "true"
+      ? Promise.resolve()
+      : new Promise<void>((resolve, reject) => {
+          existing.addEventListener("load", () => resolve(), { once: true });
+          existing.addEventListener(
+            "error",
+            () => reject(new Error(`[banner-tool] Failed to load script: ${url}`)),
+            { once: true }
+          );
+        });
+  }
+
+  return new Promise<void>((resolve, reject) => {
+    const script = document.createElement("script");
+    script.type = "module";
+    script.id = id;
+    script.src = url;
+    script.crossOrigin = "anonymous";
+    script.dataset.ready = "false";
+    script.addEventListener(
+      "load",
+      () => {
+        script.dataset.ready = "true";
+        resolve();
+      },
+      { once: true }
+    );
+    script.addEventListener(
+      "error",
+      () => {
+        script.remove();
+        reject(new Error(`[banner-tool] Failed to load script: ${url}`));
+      },
+      { once: true }
+    );
+    document.head.appendChild(script);
+  });
+}
+
+async function ensureLiveEditorLoaded(): Promise<HTMLElement> {
+  if (!liveEditorScriptPromise) {
+    if (import.meta.env.DEV) {
+      const devEntry =
+        (import.meta.env.VITE_LIVE_EDITOR_DEV_ORIGIN as string | undefined) ||
+        "http://localhost:5174/src/live-editor.tsx";
+      // await ensureModuleScript("http://localhost:5174/@vite/client", "vite-client-dev");
+      const script = document.createElement("script");
+      script.type = "module";
+      script.textContent = `
+        import { injectIntoGlobalHook } from "http://localhost:5174/@react-refresh";
+        injectIntoGlobalHook(window);
+        window.$RefreshReg$ = () => {};
+        window.$RefreshSig$ = () => (type) => type;
+      `;
+      document.head.appendChild(script);
+      
+      await ensureModuleScript("http://localhost:5174/@react-refresh", "react-refresh-dev");
+      liveEditorScriptPromise = ensureModuleScript(devEntry, "banner-live-editor-dev");
+    } else {
+      const url = new URL(`live-editor/live-editor.js?v=${version}`, import.meta.url).href;
+      liveEditorScriptPromise = ensureModuleScript(url, "banner-live-editor-prod");
+    }
+  }
+
+  await liveEditorScriptPromise;
+  await customElements.whenDefined(LIVE_EDITOR_TAG);
+
+  let element = document.querySelector(LIVE_EDITOR_TAG) as HTMLElement | null;
+  if (!element) {
+    element = document.createElement(LIVE_EDITOR_TAG);
+    element.setAttribute("version", version);
+    document.body.appendChild(element);
+  } else {
+    element.setAttribute("version", version);
+  }
+
+  return element;
+}
 
 async function loadLiveEditor(): Promise<void> {
   if (!shouldLoadLiveEditor()) {
     return;
   }
-
-  const devOverride =
-    (import.meta.env.VITE_LIVE_EDITOR_DEV_ORIGIN as string | undefined) ||
-    "http://localhost:5174/src/dev-entry.tsx";
-
-  if (import.meta.env.DEV) {
-    try {
-      const module = (await import(/* @vite-ignore */ `${devOverride}`)) as LiveEditorModule | undefined;
-      if (module?.mountLiveEditor) {
-        const devBase = new URL("./", devOverride).href;
-        module.mountLiveEditor({ baseUrl: devBase, version });
-      }
-      return;
-    } catch (error) {
-      console.warn("[banner-tool] Live editor dev server unavailable", error);
-    }
-  }
-
-  const liveEditorUrl = new URL(`live-editor/live-editor.js?v=${version}`, assetBase).href;
   try {
-    const module = (await import(/* @vite-ignore */ liveEditorUrl)) as LiveEditorModule | undefined;
-    if (module?.mountLiveEditor) {
-      module.mountLiveEditor({ baseUrl: assetBase, version });
-    }
+    const element = await ensureLiveEditorLoaded();
+    window.__BANNER_LIVE_EDITOR__ = {
+      version,
+      element,
+      close: () => document.querySelector(LIVE_EDITOR_TAG)?.remove(),
+      open: () => {
+        if (!document.querySelector(LIVE_EDITOR_TAG)) {
+          const next = document.createElement(LIVE_EDITOR_TAG);
+          next.setAttribute("version", version);
+          document.body.appendChild(next);
+        }
+      }
+    };
   } catch (error) {
-    console.warn("[banner-tool] Failed to load live editor", error);
+    liveEditorScriptPromise = null;
+    console.warn("[banner-tool] Failed to bootstrap live editor", error);
   }
 }
 
 async function init(): Promise<void> {
   window.__BANNER_TOOL__ = {
     version,
-    assetBase
   };
 
-  const configUrl = new URL("banner-locations.json", assetBase).href;
+  const configUrl = new URL("banner-locations.json", window.location.href).href;
   const config = await loadBannerConfig(configUrl);
   if (!config) {
     return;
@@ -120,11 +189,18 @@ async function init(): Promise<void> {
   await loadLiveEditor();
 }
 
+export {};
+
 declare global {
   interface Window {
     __BANNER_TOOL__?: {
       version: string;
-      assetBase: string;
+    };
+    __BANNER_LIVE_EDITOR__?: {
+      version: string;
+      element: HTMLElement;
+      open: () => void;
+      close: () => void;
     };
   }
 }
