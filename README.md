@@ -44,7 +44,7 @@
 루트에서 한 번에 두 패키지를 빌드합니다. 커밋 해시가 버전으로 사용되며, 결과물은 `dist/<commit>/` 이하에 모아집니다.
 
 ```bash
-BASE_URL=https://cdn.example.com/banner/<commit>/ npm run build
+npm run build
 ```
 
 - Git 저장소인 경우 현재 커밋 해시(12자리)가 버전으로 사용됩니다. Git 정보가 없으면 `COMMIT_SHA` 환경변수로 명시하거나 기본값 `dev`가 사용됩니다.
@@ -70,7 +70,6 @@ BASE_URL=https://cdn.example.com/banner/<commit>/ npm run build
 ## 환경 변수 요약
 
 - `COMMIT_SHA`: 빌드 버전을 강제로 지정합니다. (예: CI 환경)
-- `BASE_URL`: 빌드 결과물이 배포될 CDN/S3 경로(예: `https://cdn.example.com/banner/latest/`). 설정하면 메인 스크립트가 해당 경로를 기준으로 JSON 및 라이브 에디터 스크립트를 로드합니다. 개발 서버(`npm run dev:main`)는 기본값으로 `/`을 사용합니다.
 - `VITE_LIVE_EDITOR_DEV_ORIGIN`: 개발 환경에서 라이브 에디터 모듈을 다른 URL 로부터 로드하고 싶을 때 사용합니다. 기본값은 `http://localhost:5174/src/live-editor.tsx` 입니다.
 
 ## 참고

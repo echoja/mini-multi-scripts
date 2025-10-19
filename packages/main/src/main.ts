@@ -11,8 +11,6 @@ const LIVE_EDITOR_TRIGGER_VALUES = new Set(["1", "true", "yes"]);
 
 const version = __BANNER_VERSION__ || "dev";
 
-const normalizedBaseUrl = __BANNER_BASE_URL__.trim();
-
 function createBannerElement(): HTMLElement {
   const container = document.createElement("div");
   container.className = "banner-tool-banner";
