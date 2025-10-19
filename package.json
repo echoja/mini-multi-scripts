@@ -10,6 +10,7 @@
   "scripts": {
     "dev": "npm-run-all -p dev:main dev:live-locator",
     "build": "node scripts/build.mjs",
+    "serve": "npm run preview --workspace @banner/main",
     "dev:main": "npm run dev --workspace @banner/main",
     "dev:live-locator": "npm run dev --workspace @banner/live-locator",
     "lint": "npm run lint --workspaces --if-present"

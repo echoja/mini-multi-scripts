@@ -1,5 +1,5 @@
 import { execSync, execFileSync } from "node:child_process";
-import { mkdir, rm, cp, writeFile } from "node:fs/promises";
+import { mkdir, rm, cp, writeFile, readFile } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
 import { dirname, join } from "node:path";
 
@@ -40,6 +40,8 @@ console.log(`[build] Using version ${baseHash}`);
 run("npm", ["run", "build", "--workspace", "@banner/live-locator"], { COMMIT_SHA: baseHash });
 run("npm", ["run", "build", "--workspace", "@banner/main"], { COMMIT_SHA: baseHash });
 
+await generateMainIndexHtml();
+
 const distRoot = join(repoRoot, "dist");
 const versionedDist = join(distRoot, baseHash);
 
@@ -62,3 +64,12 @@ const manifest = {
 await writeFile(join(versionedDist, "manifest.json"), JSON.stringify(manifest, null, 2));
 
 console.log(`[build] Files are ready in dist/${baseHash}`);
+
+async function generateMainIndexHtml() {
+  const sourcePath = join(repoRoot, "packages/main/index.html");
+  const targetPath = join(repoRoot, "packages/main/dist/index.html");
+  const html = await readFile(sourcePath, "utf8");
+  const withBundledScript = html.replace(/src="\/src\/main\.ts"/g, 'src="./main.js"');
+  await mkdir(dirname(targetPath), { recursive: true });
+  await writeFile(targetPath, withBundledScript);
+}
