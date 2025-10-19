@@ -3,15 +3,15 @@
   "version": "0.0.0",
   "private": true,
   "type": "module",
-  "description": "Monorepo containing the banner main script and the optional live editor.",
+  "description": "Monorepo containing the banner main script and the optional live locator.",
   "workspaces": [
     "packages/*"
   ],
   "scripts": {
-    "dev": "npm-run-all -p dev:main dev:live-editor",
+    "dev": "npm-run-all -p dev:main dev:live-locator",
     "build": "node scripts/build.mjs",
     "dev:main": "npm run dev --workspace @banner/main",
-    "dev:live-editor": "npm run dev --workspace @banner/live-editor",
+    "dev:live-locator": "npm run dev --workspace @banner/live-locator",
     "lint": "npm run lint --workspaces --if-present"
   },
   "keywords": [],

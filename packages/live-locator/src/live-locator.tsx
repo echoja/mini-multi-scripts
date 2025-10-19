@@ -1,11 +1,11 @@
 import { createRoot, Root } from "react-dom/client";
-import { LiveEditorApp } from "./LiveEditorApp";
+import { LiveLocatorApp } from "./LiveLocatorApp";
 
-const ELEMENT_TAG = "banner-live-editor";
+const ELEMENT_TAG = "banner-live-locator";
 
 declare global {
   interface Window {
-    __BANNER_LIVE_EDITOR__?: {
+    __BANNER_LIVE_LOCATOR__?: {
       version: string;
       baseUrl: string;
       destroy: () => void;
@@ -13,13 +13,12 @@ declare global {
   }
 }
 
-
 type ElementState = {
   root: Root;
   version: string;
 };
 
-class BannerLiveEditorElement extends HTMLElement {
+class BannerLiveLocatorElement extends HTMLElement {
   private state: ElementState | null = null;
 
   static get observedAttributes(): string[] {
@@ -44,18 +43,18 @@ class BannerLiveEditorElement extends HTMLElement {
     `;
 
     const mountPoint = document.createElement("div");
-    mountPoint.id = "banner-live-editor-root";
+    mountPoint.id = "banner-live-locator-root";
     shadowRoot.append(resetStyle, mountPoint);
 
     const version = this.getAttribute("version") ?? window.__BANNER_TOOL__?.version ?? "dev";
 
     const root = createRoot(mountPoint);
     const handleClose = () => {
-      this.dispatchEvent(new CustomEvent("banner-live-editor:close", { bubbles: true }));
+      this.dispatchEvent(new CustomEvent("banner-live-locator:close", { bubbles: true }));
       this.remove();
     };
 
-    root.render(<LiveEditorApp version={version} onClose={handleClose} />);
+    root.render(<LiveLocatorApp version={version} onClose={handleClose} />);
 
     this.state = { root, version };
   }
@@ -72,22 +71,22 @@ class BannerLiveEditorElement extends HTMLElement {
 
     const nextVersion = newValue ?? "dev";
     const handleClose = () => {
-      this.dispatchEvent(new CustomEvent("banner-live-editor:close", { bubbles: true }));
+      this.dispatchEvent(new CustomEvent("banner-live-locator:close", { bubbles: true }));
       this.remove();
     };
 
-    this.state.root.render(<LiveEditorApp version={nextVersion} onClose={handleClose} />);
+    this.state.root.render(<LiveLocatorApp version={nextVersion} onClose={handleClose} />);
     this.state.version = nextVersion;
   }
 }
 
-export function defineLiveEditorElement(): void {
+export function defineLiveLocatorElement(): void {
   if (!customElements.get(ELEMENT_TAG)) {
-    customElements.define(ELEMENT_TAG, BannerLiveEditorElement);
+    customElements.define(ELEMENT_TAG, BannerLiveLocatorElement);
   }
 }
 
-defineLiveEditorElement();
+defineLiveLocatorElement();
 
 declare global {
   interface Window {
@@ -98,6 +97,6 @@ declare global {
   }
 
   interface HTMLElementTagNameMap {
-    "banner-live-editor": BannerLiveEditorElement;
+    "banner-live-locator": BannerLiveLocatorElement;
   }
 }

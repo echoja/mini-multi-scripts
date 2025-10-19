@@ -37,7 +37,7 @@ const baseHash = readCommitHash();
 
 console.log(`[build] Using version ${baseHash}`);
 
-run("npm", ["run", "build", "--workspace", "@banner/live-editor"], { COMMIT_SHA: baseHash });
+run("npm", ["run", "build", "--workspace", "@banner/live-locator"], { COMMIT_SHA: baseHash });
 run("npm", ["run", "build", "--workspace", "@banner/main"], { COMMIT_SHA: baseHash });
 
 const distRoot = join(repoRoot, "dist");
@@ -45,17 +45,17 @@ const versionedDist = join(distRoot, baseHash);
 
 await rm(versionedDist, { recursive: true, force: true });
 await mkdir(versionedDist, { recursive: true });
-await mkdir(join(versionedDist, "live-editor"), { recursive: true });
+await mkdir(join(versionedDist, "live-locator"), { recursive: true });
 
 await cp(join(repoRoot, "packages/main/dist"), versionedDist, { recursive: true });
-await cp(join(repoRoot, "packages/live-editor/dist"), join(versionedDist, "live-editor"), { recursive: true });
+await cp(join(repoRoot, "packages/live-locator/dist"), join(versionedDist, "live-locator"), { recursive: true });
 
 const manifest = {
   version: baseHash,
   builtAt: new Date().toISOString(),
   artifacts: {
     main: "main.js",
-    liveEditor: "live-editor/live-editor.js"
+    liveLocator: "live-locator/live-locator.js"
   }
 };
 

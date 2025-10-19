@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { toSimpleSelector } from "./utils/selector";
 
-type LiveEditorAppProps = {
+type LiveLocatorAppProps = {
   version: string;
   onClose: () => void;
 };
@@ -15,7 +15,7 @@ type OverlayRect = {
 };
 
 const styles = `
-  .banner-live-editor {
+  .banner-live-locator {
     position: fixed;
     inset: 0;
     pointer-events: none;
@@ -23,7 +23,7 @@ const styles = `
     font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
     color: #f8fafc;
   }
-  .banner-live-editor__topbar {
+  .banner-live-locator__topbar {
     pointer-events: auto;
     position: fixed;
     top: 16px;
@@ -37,11 +37,11 @@ const styles = `
     gap: 12px;
     box-shadow: 0 20px 45px rgba(15, 23, 42, 0.35);
   }
-  .banner-live-editor__label {
+  .banner-live-locator__label {
     font-size: 13px;
     letter-spacing: 0.01em;
   }
-  .banner-live-editor__button {
+  .banner-live-locator__button {
     pointer-events: auto;
     padding: 6px 12px;
     border-radius: 999px;
@@ -52,7 +52,7 @@ const styles = `
     color: #0f172a;
     cursor: pointer;
   }
-  .banner-live-editor__outline {
+  .banner-live-locator__outline {
     position: fixed;
     border: 2px solid rgba(59, 130, 246, 0.9);
     border-radius: 12px;
@@ -60,7 +60,7 @@ const styles = `
     box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.15);
     transition: transform 80ms ease, width 80ms ease, height 80ms ease;
   }
-  .banner-live-editor__outline::after {
+  .banner-live-locator__outline::after {
     content: attr(data-label);
     position: absolute;
     top: -28px;
@@ -72,7 +72,7 @@ const styles = `
     font-size: 12px;
     pointer-events: none;
   }
-  .banner-live-editor__panel {
+  .banner-live-locator__panel {
     pointer-events: auto;
     position: fixed;
     bottom: 24px;
@@ -83,12 +83,12 @@ const styles = `
     min-width: 260px;
     box-shadow: 0 25px 50px rgba(15, 23, 42, 0.3);
   }
-  .banner-live-editor__panel h3 {
+  .banner-live-locator__panel h3 {
     margin: 0 0 12px;
     font-size: 16px;
     font-weight: 600;
   }
-  .banner-live-editor__panel p {
+  .banner-live-locator__panel p {
     margin: 0;
     font-size: 13px;
     line-height: 1.5;
@@ -97,7 +97,7 @@ const styles = `
   }
 `;
 
-export function LiveEditorApp({ version, onClose }: LiveEditorAppProps) {
+export function LiveLocatorApp({ version, onClose }: LiveLocatorAppProps) {
   const overlayRootRef = useRef<HTMLDivElement | null>(null);
   const [hovered, setHovered] = useState<HTMLElement | null>(null);
   const [selected, setSelected] = useState<HTMLElement | null>(null);
@@ -191,13 +191,13 @@ export function LiveEditorApp({ version, onClose }: LiveEditorAppProps) {
   }, [selected]);
 
   return (
-    <div className="banner-live-editor" ref={overlayRootRef}>
+    <div className="banner-live-locator" ref={overlayRootRef}>
       <style>{styles}</style>
-      <div className="banner-live-editor__topbar">
-        <span className="banner-live-editor__label">Banner Live Editor · v{version}</span>
+      <div className="banner-live-locator__topbar">
+        <span className="banner-live-locator__label">Banner Live Locator · v{version}</span>
         <button
           type="button"
-          className="banner-live-editor__button"
+          className="banner-live-locator__button"
           onClick={onClose}
         >
           종료
@@ -205,7 +205,7 @@ export function LiveEditorApp({ version, onClose }: LiveEditorAppProps) {
       </div>
       {overlayRect ? (
         <div
-          className="banner-live-editor__outline"
+          className="banner-live-locator__outline"
           style={{
             transform: `translate(${overlayRect.left}px, ${overlayRect.top}px)`,
             width: `${overlayRect.width}px`,
@@ -214,7 +214,7 @@ export function LiveEditorApp({ version, onClose }: LiveEditorAppProps) {
           data-label={overlayRect.label}
         />
       ) : null}
-      <aside className="banner-live-editor__panel">
+      <aside className="banner-live-locator__panel">
         <h3>{panelContent.title}</h3>
         <p>{panelContent.description}</p>
       </aside>

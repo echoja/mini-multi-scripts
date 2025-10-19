@@ -9,9 +9,9 @@ export default defineConfig({
     outDir: "dist",
     emptyOutDir: true,
     lib: {
-      entry: "src/live-editor.tsx",
+      entry: "src/live-locator.tsx",
       formats: ["es"],
-      fileName: () => "live-editor.js"
+      fileName: () => "live-locator.js"
     },
     rollupOptions: {
       output: {
