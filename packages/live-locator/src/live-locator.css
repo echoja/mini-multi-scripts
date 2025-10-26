@@ -1,0 +1,17 @@
+@import "tailwindcss";
+
+@layer components {
+  .banner-live-locator__outline::after {
+    content: attr(data-label);
+    position: absolute;
+    top: -28px;
+    left: 0;
+    background: rgba(59, 130, 246, 0.95);
+    color: #f8fafc;
+    padding: 4px 8px;
+    border-radius: 8px;
+    font-size: 12px;
+    pointer-events: none;
+    white-space: nowrap;
+  }
+}

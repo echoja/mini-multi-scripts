@@ -1,5 +1,6 @@
 import { createRoot, Root } from "react-dom/client";
 import { LiveLocatorApp } from "./LiveLocatorApp";
+import styles from "./live-locator.css?inline";
 
 const ELEMENT_TAG = "banner-live-locator";
 
@@ -31,20 +32,23 @@ class BannerLiveLocatorElement extends HTMLElement {
     }
 
     const shadowRoot = this.shadowRoot ?? this.attachShadow({ mode: "open" });
-    const resetStyle = document.createElement("style");
-    resetStyle.textContent = `
+    const globalStyle = document.createElement("style");
+    globalStyle.textContent = `
       :host {
         all: initial;
         display: contents;
       }
+        
       :host([hidden]) {
         display: none;
       }
+
+      ${styles}
     `;
 
     const mountPoint = document.createElement("div");
     mountPoint.id = "banner-live-locator-root";
-    shadowRoot.append(resetStyle, mountPoint);
+    shadowRoot.append(globalStyle, mountPoint);
 
     const version = this.getAttribute("version") ?? window.__BANNER_TOOL__?.version ?? "dev";
 
