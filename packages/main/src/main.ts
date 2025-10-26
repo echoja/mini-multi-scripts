@@ -9,7 +9,7 @@ interface BannerConfig {
 const LIVE_LOCATOR_PARAM = "bannerLocator";
 const LIVE_LOCATOR_TRIGGER_VALUES = new Set(["1", "true", "yes"]);
 
-const version = __BANNER_VERSION__ || "dev";
+const version = "dev";
 
 function createBannerElement(): HTMLElement {
   const container = document.createElement("div");
@@ -107,9 +107,6 @@ function ensureModuleScript(url: string, id: string): Promise<void> {
 async function ensureLiveLocatorLoaded(): Promise<HTMLElement> {
   if (!liveLocatorScriptPromise) {
     if (import.meta.env.DEV) {
-      const devEntry =
-        (import.meta.env.VITE_LIVE_LOCATOR_DEV_ORIGIN as string | undefined) ||
-        "http://localhost:5174/src/live-locator.tsx";
       // await ensureModuleScript("http://localhost:5174/@vite/client", "vite-client-dev");
       const script = document.createElement("script");
       script.type = "module";
@@ -122,7 +119,7 @@ async function ensureLiveLocatorLoaded(): Promise<HTMLElement> {
       document.head.appendChild(script);
 
       await ensureModuleScript("http://localhost:5174/@react-refresh", "react-refresh-dev");
-      liveLocatorScriptPromise = ensureModuleScript(devEntry, "banner-live-locator-dev");
+      liveLocatorScriptPromise = ensureModuleScript("http://localhost:5174/src/live-locator.tsx", "banner-live-locator-dev");
     } else {
       const url = new URL(`live-locator/live-locator.js?v=${version}`, import.meta.url).href;
       liveLocatorScriptPromise = ensureModuleScript(url, "banner-live-locator-prod");

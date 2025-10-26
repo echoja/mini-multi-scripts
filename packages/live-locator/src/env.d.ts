@@ -1,1 +1,4 @@
-declare const __BANNER_VERSION__: string;
+
+interface ImportMeta {
+  readonly env: ImportMetaEnv;
+}

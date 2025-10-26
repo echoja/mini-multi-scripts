@@ -1,4 +1,6 @@
-import { execSync, execFileSync } from "node:child_process";
+// @ts-check
+
+import { execFileSync } from "node:child_process";
 import { mkdir, rm, cp, writeFile, readFile } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
 import { dirname, join } from "node:path";
@@ -7,69 +9,63 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 const repoRoot = join(__dirname, "..");
 
-function readCommitHash() {
-  if (process.env.COMMIT_SHA) {
-    return process.env.COMMIT_SHA;
-  }
-  try {
-    return execSync("git rev-parse --short=12 HEAD", { cwd: repoRoot, stdio: ["ignore", "pipe", "ignore"] })
-      .toString()
-      .trim();
-  } catch (error) {
-    console.warn("[build] Unable to determine git commit, falling back to 'dev'.");
-    return "dev";
-  }
-}
-
-function run(command, args, extraEnv = {}) {
+/**
+ * @param {string} command
+ * @param {string[]} args
+ */
+function run(command, args) {
   execFileSync(command, args, {
     cwd: repoRoot,
     stdio: "inherit",
     env: {
       ...process.env,
       NODE_ENV: "production",
-      COMMIT_SHA: extraEnv.COMMIT_SHA ?? extraEnv.commitHash ?? baseHash
-    }
+    },
   });
 }
 
-const baseHash = readCommitHash();
-
-console.log(`[build] Using version ${baseHash}`);
-
-run("npm", ["run", "build", "--workspace", "@banner/live-locator"], { COMMIT_SHA: baseHash });
-run("npm", ["run", "build", "--workspace", "@banner/main"], { COMMIT_SHA: baseHash });
+run("npm", ["run", "build", "--workspace", "@banner/live-locator"]);
+run("npm", ["run", "build", "--workspace", "@banner/main"]);
 
 await generateMainIndexHtml();
 
 const distRoot = join(repoRoot, "dist");
-const versionedDist = join(distRoot, baseHash);
 
-await rm(versionedDist, { recursive: true, force: true });
-await mkdir(versionedDist, { recursive: true });
-await mkdir(join(versionedDist, "live-locator"), { recursive: true });
+await rm(distRoot, { recursive: true, force: true });
+await mkdir(distRoot, { recursive: true });
+await mkdir(join(distRoot, "live-locator"), { recursive: true });
 
-await cp(join(repoRoot, "packages/main/dist"), versionedDist, { recursive: true });
-await cp(join(repoRoot, "packages/live-locator/dist"), join(versionedDist, "live-locator"), { recursive: true });
+await cp(join(repoRoot, "packages/main/dist"), distRoot, { recursive: true });
+await cp(
+  join(repoRoot, "packages/live-locator/dist"),
+  join(distRoot, "live-locator"),
+  { recursive: true }
+);
 
 const manifest = {
-  version: baseHash,
+  version: "dev",
   builtAt: new Date().toISOString(),
   artifacts: {
     main: "main.js",
-    liveLocator: "live-locator/live-locator.js"
-  }
+    liveLocator: "live-locator/live-locator.js",
+  },
 };
 
-await writeFile(join(versionedDist, "manifest.json"), JSON.stringify(manifest, null, 2));
+await writeFile(
+  join(distRoot, "manifest.json"),
+  JSON.stringify(manifest, null, 2)
+);
 
-console.log(`[build] Files are ready in dist/${baseHash}`);
+console.log("[build] Files are ready in dist/");
 
 async function generateMainIndexHtml() {
   const sourcePath = join(repoRoot, "packages/main/index.html");
   const targetPath = join(repoRoot, "packages/main/dist/index.html");
   const html = await readFile(sourcePath, "utf8");
-  const withBundledScript = html.replace(/src="\/src\/main\.ts"/g, 'src="./main.js"');
+  const withBundledScript = html.replace(
+    /src="\/src\/main\.ts"/g,
+    'src="./main.js"'
+  );
   await mkdir(dirname(targetPath), { recursive: true });
   await writeFile(targetPath, withBundledScript);
 }
