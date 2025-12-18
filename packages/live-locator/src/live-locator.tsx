@@ -33,18 +33,7 @@ class BannerLiveLocatorElement extends HTMLElement {
 
     const shadowRoot = this.shadowRoot ?? this.attachShadow({ mode: "open" });
     const globalStyle = document.createElement("style");
-    globalStyle.textContent = `
-      :host {
-        all: initial;
-        display: contents;
-      }
-        
-      :host([hidden]) {
-        display: none;
-      }
-
-      ${styles}
-    `;
+    globalStyle.textContent = `${styles}`;
 
     const mountPoint = document.createElement("div");
     mountPoint.id = "banner-live-locator-root";

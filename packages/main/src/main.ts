@@ -6,7 +6,7 @@ interface BannerConfig {
   locations: BannerLocation[];
 }
 
-const LIVE_LOCATOR_PARAM = "bannerLocator";
+const LIVE_LOCATOR_PARAM = "liveLocator";
 const LIVE_LOCATOR_TRIGGER_VALUES = new Set(["1", "true", "yes"]);
 
 const version = "dev";

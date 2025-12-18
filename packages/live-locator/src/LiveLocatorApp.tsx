@@ -1,5 +1,4 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import styles from "./live-locator.css?inline";
 import { toSimpleSelector } from "./utils/selector";
 
 type LiveLocatorAppProps = {
