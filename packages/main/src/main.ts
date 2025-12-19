@@ -121,7 +121,7 @@ async function ensureLiveLocatorLoaded(): Promise<HTMLElement> {
       await ensureModuleScript("http://localhost:5174/@react-refresh", "react-refresh-dev");
       liveLocatorScriptPromise = ensureModuleScript("http://localhost:5174/src/live-locator.tsx", "banner-live-locator-dev");
     } else {
-      const url = new URL(`live-locator/live-locator.js?v=${version}`, import.meta.url).href;
+      const url = new URL(/* @vite-ignore */`live-locator/live-locator.js?v=${version}`, import.meta.url).href;
       liveLocatorScriptPromise = ensureModuleScript(url, "banner-live-locator-prod");
     }
   }
