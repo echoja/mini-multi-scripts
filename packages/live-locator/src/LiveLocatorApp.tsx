@@ -20,8 +20,20 @@ export function LiveLocatorApp({ version, onClose }: LiveLocatorAppProps) {
   const [hovered, setHovered] = useState<HTMLElement | null>(null);
   const [selected, setSelected] = useState<HTMLElement | null>(null);
   const [overlayRect, setOverlayRect] = useState<OverlayRect | null>(null);
+  const initialVersionRef = useRef(version);
+  const lastHoveredRef = useRef<HTMLElement | null>(null);
+  const lastSelectedRef = useRef<HTMLElement | null>(null);
 
   const activeTarget = selected ?? hovered;
+
+  useEffect(() => {
+    console.log("[banner-tool] Live Locator app mounted", {
+      version: initialVersionRef.current,
+    });
+    return () => {
+      console.log("[banner-tool] Live Locator app unmounted");
+    };
+  }, []);
 
   useEffect(() => {
     const overlayRoot = overlayRootRef.current;
@@ -62,6 +74,43 @@ export function LiveLocatorApp({ version, onClose }: LiveLocatorAppProps) {
       document.removeEventListener("click", handleClick, true);
     };
   }, []);
+
+  useEffect(() => {
+    if (selected) {
+      return;
+    }
+    if (hovered === lastHoveredRef.current) {
+      return;
+    }
+    if (!hovered) {
+      if (lastHoveredRef.current) {
+        console.log("[banner-tool] Live Locator hover cleared");
+        lastHoveredRef.current = null;
+      }
+      return;
+    }
+    lastHoveredRef.current = hovered;
+    console.log("[banner-tool] Live Locator hover target", {
+      selector: toSimpleSelector(hovered),
+    });
+  }, [hovered, selected]);
+
+  useEffect(() => {
+    if (selected === lastSelectedRef.current) {
+      return;
+    }
+    if (!selected) {
+      if (lastSelectedRef.current) {
+        console.log("[banner-tool] Live Locator selection cleared");
+        lastSelectedRef.current = null;
+      }
+      return;
+    }
+    lastSelectedRef.current = selected;
+    console.log("[banner-tool] Live Locator selection updated", {
+      selector: toSimpleSelector(selected),
+    });
+  }, [selected]);
 
   useEffect(() => {
     if (!activeTarget) {
@@ -110,10 +159,6 @@ export function LiveLocatorApp({ version, onClose }: LiveLocatorAppProps) {
       description: toSimpleSelector(selected),
     };
   }, [selected]);
-
-  useEffect(() => {
-    console.log("styles", styles);
-  }, [styles]);
 
   return (
     <>

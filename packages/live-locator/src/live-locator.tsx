@@ -50,6 +50,7 @@ class BannerLiveLocatorElement extends HTMLElement {
 
     const root = createRoot(mountPoint);
     const handleClose = () => {
+      console.log("[banner-tool] Live Locator close requested");
       this.dispatchEvent(
         new CustomEvent("banner-live-locator:close", { bubbles: true })
       );
@@ -66,6 +67,7 @@ class BannerLiveLocatorElement extends HTMLElement {
   disconnectedCallback(): void {
     this.state?.root.unmount();
     this.state = null;
+    console.log("[banner-tool] Live Locator unmounted");
   }
 
   attributeChangedCallback(
@@ -79,6 +81,7 @@ class BannerLiveLocatorElement extends HTMLElement {
 
     const nextVersion = newValue ?? "dev";
     const handleClose = () => {
+      console.log("[banner-tool] Live Locator close requested");
       this.dispatchEvent(
         new CustomEvent("banner-live-locator:close", { bubbles: true })
       );
@@ -89,12 +92,16 @@ class BannerLiveLocatorElement extends HTMLElement {
       <LiveLocatorApp version={nextVersion} onClose={handleClose} />
     );
     this.state.version = nextVersion;
+    console.log("[banner-tool] Live Locator version updated", {
+      version: nextVersion,
+    });
   }
 }
 
 export function defineLiveLocatorElement(): void {
   if (!customElements.get(ELEMENT_TAG)) {
     customElements.define(ELEMENT_TAG, BannerLiveLocatorElement);
+    console.log("[banner-tool] Live Locator element defined");
   }
 }
 
