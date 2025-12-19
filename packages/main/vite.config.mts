@@ -6,8 +6,9 @@ export default defineConfig({
     emptyOutDir: true,
     lib: {
       entry: "src/main.ts",
-      formats: ["es"],
-      fileName: () => "main.js"
+      formats: ["iife"],
+      fileName: () => "main.js",
+      name: "BannerMain"
     },
     rollupOptions: {
       output: {

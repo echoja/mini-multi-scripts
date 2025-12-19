@@ -26,10 +26,12 @@ export default defineConfig({
   build: {
     outDir: "dist",
     emptyOutDir: true,
+    minify: true,
     lib: {
       entry: "src/live-locator.tsx",
-      formats: ["es"],
+      formats: ["iife"],
       fileName: () => "live-locator.js",
+      name: "BannerLiveLocator",
     },
     rollupOptions: {
       output: {
