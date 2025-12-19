@@ -1,6 +1,5 @@
 import { createRoot, Root } from "react-dom/client";
 import { LiveLocatorApp } from "./LiveLocatorApp";
-import styles from "./live-locator.css?inline";
 
 const ELEMENT_TAG = "banner-live-locator";
 
@@ -11,6 +10,15 @@ declare global {
       baseUrl: string;
       destroy: () => void;
     };
+
+    __BANNER_TOOL__?: {
+      version: string;
+      assetBase: string;
+    };
+  }
+
+  interface HTMLElementTagNameMap {
+    "banner-live-locator": BannerLiveLocatorElement;
   }
 }
 
@@ -32,24 +40,27 @@ class BannerLiveLocatorElement extends HTMLElement {
     }
 
     const shadowRoot = this.shadowRoot ?? this.attachShadow({ mode: "open" });
-    const globalStyle = document.createElement("style");
-    globalStyle.textContent = `${styles}`;
 
     const mountPoint = document.createElement("div");
     mountPoint.id = "banner-live-locator-root";
-    shadowRoot.append(globalStyle, mountPoint);
+    shadowRoot.append(mountPoint)
 
-    const version = this.getAttribute("version") ?? window.__BANNER_TOOL__?.version ?? "dev";
+    const version =
+      this.getAttribute("version") ?? window.__BANNER_TOOL__?.version ?? "dev";
 
     const root = createRoot(mountPoint);
     const handleClose = () => {
-      this.dispatchEvent(new CustomEvent("banner-live-locator:close", { bubbles: true }));
+      this.dispatchEvent(
+        new CustomEvent("banner-live-locator:close", { bubbles: true })
+      );
       this.remove();
     };
 
     root.render(<LiveLocatorApp version={version} onClose={handleClose} />);
 
     this.state = { root, version };
+
+    console.log("[banner-tool] Live Locator mounted", { version });
   }
 
   disconnectedCallback(): void {
@@ -57,18 +68,26 @@ class BannerLiveLocatorElement extends HTMLElement {
     this.state = null;
   }
 
-  attributeChangedCallback(name: string, oldValue: string | null, newValue: string | null): void {
+  attributeChangedCallback(
+    name: string,
+    oldValue: string | null,
+    newValue: string | null
+  ): void {
     if (name !== "version" || oldValue === newValue || !this.state) {
       return;
     }
 
     const nextVersion = newValue ?? "dev";
     const handleClose = () => {
-      this.dispatchEvent(new CustomEvent("banner-live-locator:close", { bubbles: true }));
+      this.dispatchEvent(
+        new CustomEvent("banner-live-locator:close", { bubbles: true })
+      );
       this.remove();
     };
 
-    this.state.root.render(<LiveLocatorApp version={nextVersion} onClose={handleClose} />);
+    this.state.root.render(
+      <LiveLocatorApp version={nextVersion} onClose={handleClose} />
+    );
     this.state.version = nextVersion;
   }
 }
@@ -80,16 +99,3 @@ export function defineLiveLocatorElement(): void {
 }
 
 defineLiveLocatorElement();
-
-declare global {
-  interface Window {
-    __BANNER_TOOL__?: {
-      version: string;
-      assetBase: string;
-    };
-  }
-
-  interface HTMLElementTagNameMap {
-    "banner-live-locator": BannerLiveLocatorElement;
-  }
-}

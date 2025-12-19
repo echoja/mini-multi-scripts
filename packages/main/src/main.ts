@@ -22,7 +22,7 @@ function createBannerElement(): HTMLElement {
   container.style.fontFamily = "system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif";
   container.style.boxShadow = "0 4px 10px rgba(0,0,0,0.15)";
   container.dataset.bannerTool = "banner";
-  container.textContent = "🚀 배너 툴이 활성화되었습니다. 이 영역에 커스텀 프로모션을 보여주세요.";
+  container.textContent = "This is a banner injected by Banner Tool";
   return container;
 }
 

@@ -41,18 +41,18 @@
   <body>
     <header>
       <h1>배너 도구 데모 페이지</h1>
-      <p>query string으로 <code>?liveLocator=1</code>을 추가하면 라이브 로케이터가 로드됩니다.</p>
+      <p>query string으로 <code>?liveLocator=1</code>을 추가하면 live-locator가 로드됩니다.</p>
     </header>
     <main>
-      <section class="content-block">
+      <section id="section1" class="content-block">
         <h2>섹션 1</h2>
         <p>이 영역은 배너 도구가 삽입될 위치 예시를 보여줍니다.</p>
         <div id="banner-slot" class="banner-placeholder">#banner-slot 위치</div>
       </section>
-      <section class="content-block">
+      <section id="section2" class="content-block">
         <h2>섹션 2</h2>
         <p>추가적인 배너 삽입 지점을 정의할 수 있습니다.</p>
-        <div class="banner-placeholder">.banner-placeholder 위치</div>
+        <div class="banner-placeholder">#section2 .banner-placeholder 위치</div>
       </section>
     </main>
     <script type="module" src="/src/main.ts"></script>

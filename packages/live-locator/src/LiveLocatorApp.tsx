@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { toSimpleSelector } from "./utils/selector";
+import styles from "./live-locator.css?inline";
 
 type LiveLocatorAppProps = {
   version: string;
@@ -30,7 +31,7 @@ export function LiveLocatorApp({ version, onClose }: LiveLocatorAppProps) {
         setHovered(null);
         return;
       }
-      if (overlayRoot && overlayRoot.contains(target)) {
+      if (overlayRoot && event.composedPath().includes(overlayRoot)) {
         return;
       }
       setHovered(target);
@@ -41,7 +42,7 @@ export function LiveLocatorApp({ version, onClose }: LiveLocatorAppProps) {
       if (!target) {
         return;
       }
-      if (overlayRoot && overlayRoot.contains(target)) {
+      if (overlayRoot && event.composedPath().includes(overlayRoot)) {
         return;
       }
       event.preventDefault();
@@ -75,12 +76,14 @@ export function LiveLocatorApp({ version, onClose }: LiveLocatorAppProps) {
         left: rect.left,
         width: rect.width,
         height: rect.height,
-        label: toSimpleSelector(activeTarget)
+        label: toSimpleSelector(activeTarget),
       });
     };
 
     const resizeObserver =
-      typeof ResizeObserver !== "undefined" ? new ResizeObserver(updateOverlay) : null;
+      typeof ResizeObserver !== "undefined"
+        ? new ResizeObserver(updateOverlay)
+        : null;
     resizeObserver?.observe(activeTarget);
     window.addEventListener("scroll", updateOverlay, true);
     window.addEventListener("resize", updateOverlay);
@@ -97,50 +100,60 @@ export function LiveLocatorApp({ version, onClose }: LiveLocatorAppProps) {
     if (!selected) {
       return {
         title: "요소를 선택하세요",
-        description: "페이지의 영역을 클릭하면 해당 위치의 정보를 확인할 수 있습니다."
+        description:
+          "페이지의 영역을 클릭하면 해당 위치의 정보를 확인할 수 있습니다.",
       };
     }
 
     return {
       title: "선택된 요소",
-      description: toSimpleSelector(selected)
+      description: toSimpleSelector(selected),
     };
   }, [selected]);
 
+  useEffect(() => {
+    console.log("styles", styles);
+  }, [styles]);
+
   return (
-    <div
-      className="fixed inset-0 font-sans pointer-events-none banner-live-locator z-2147483647 text-slate-50"
-      ref={overlayRootRef}
-    >
-      <div className="banner-live-locator__topbar pointer-events-auto fixed left-1/2 top-4 flex -translate-x-1/2 items-center gap-3 rounded-full bg-slate-900/95 px-5 py-2.5 shadow-[0_20px_45px_rgba(15,23,42,0.35)]">
-        <span className="banner-live-locator__label text-[13px] tracking-[0.01em]">
-          Banner Live Locator · v{version}
-        </span>
-        <button
-          type="button"
-          className="banner-live-locator__button pointer-events-auto rounded-full border-0 bg-slate-100 px-3 py-1.5 text-[13px] font-semibold text-slate-900 transition-colors hover:bg-slate-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-400/60"
-          onClick={onClose}
-        >
-          종료
-        </button>
+    <>
+      <style>{styles}</style>
+      <div
+        className="fixed inset-0 font-sans pointer-events-none banner-live-locator z-2147483647 text-slate-50"
+        ref={overlayRootRef}
+      >
+        <div className="banner-live-locator__topbar pointer-events-auto fixed left-1/2 top-4 flex -translate-x-1/2 items-center gap-3 rounded-full bg-slate-900/95 px-5 py-2.5 shadow-[0_20px_45px_rgba(15,23,42,0.35)] z-10 border border-slate-600">
+          <span className="banner-live-locator__label text-[13px] tracking-[0.01em]">
+            Banner Live Locator · v{version}
+          </span>
+          <button
+            type="button"
+            className="banner-live-locator__button pointer-events-auto rounded-full border-0 bg-slate-100 px-3 py-1.5 text-[13px] font-semibold text-slate-900 transition-colors hover:bg-slate-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-400/60"
+            onClick={onClose}
+          >
+            종료
+          </button>
+        </div>
+        {overlayRect ? (
+          <div
+            className="banner-live-locator__outline fixed pointer-events-none rounded-xl border-2 border-blue-500/90 shadow-[0_0_0_4px_rgba(59,130,246,0.15)] transition-[transform,width,height] duration-75 ease-[cubic-bezier(0.25,0.1,0.25,1)]"
+            style={{
+              transform: `translate(${overlayRect.left}px, ${overlayRect.top}px)`,
+              width: `${overlayRect.width}px`,
+              height: `${overlayRect.height}px`,
+            }}
+            data-label={overlayRect.label}
+          />
+        ) : null}
+        <aside className="banner-live-locator__panel pointer-events-auto fixed bottom-6 right-6 min-w-[260px] rounded-2xl bg-[rgba(15,23,42,0.93)] p-5 shadow-[0_25px_50px_rgba(15,23,42,0.3)]">
+          <h3 className="m-0 mb-3 text-base font-semibold text-slate-100">
+            {panelContent.title}
+          </h3>
+          <p className="m-0 wrap-break-word text-[13px] leading-normal text-[#cbd5f5]">
+            {panelContent.description}
+          </p>
+        </aside>
       </div>
-      {overlayRect ? (
-        <div
-          className="banner-live-locator__outline fixed pointer-events-none rounded-xl border-2 border-blue-500/90 shadow-[0_0_0_4px_rgba(59,130,246,0.15)] transition-[transform,width,height] duration-75 ease-[cubic-bezier(0.25,0.1,0.25,1)]"
-          style={{
-            transform: `translate(${overlayRect.left}px, ${overlayRect.top}px)`,
-            width: `${overlayRect.width}px`,
-            height: `${overlayRect.height}px`
-          }}
-          data-label={overlayRect.label}
-        />
-      ) : null}
-      <aside className="banner-live-locator__panel pointer-events-auto fixed bottom-6 right-6 min-w-[260px] rounded-2xl bg-[rgba(15,23,42,0.93)] p-5 shadow-[0_25px_50px_rgba(15,23,42,0.3)]">
-        <h3 className="m-0 mb-3 text-base font-semibold text-slate-100">{panelContent.title}</h3>
-        <p className="m-0 wrap-break-word text-[13px] leading-normal text-[#cbd5f5]">
-          {panelContent.description}
-        </p>
-      </aside>
-    </div>
+    </>
   );
 }
