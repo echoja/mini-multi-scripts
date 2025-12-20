@@ -5,7 +5,12 @@ import { defineConfig } from "vite";
 export default defineConfig(({ command }) => ({
   plugins: [
     tailwindcss(),
-    react({ jsxRuntime: "automatic" }),
+    react({
+      babel: {
+        plugins: ["babel-plugin-react-compiler"],
+      },
+      jsxRuntime: "automatic",
+    }),
 
     // @see https://github.com/tailwindlabs/tailwindcss/issues/15005 (@property isn't supported in shadow roots)
     // {
@@ -25,7 +30,7 @@ export default defineConfig(({ command }) => ({
   ],
   define:
     command === "build"
-      ? { "process.env.NODE_ENV": "\"production\"" }
+      ? { "process.env.NODE_ENV": '"production"' }
       : undefined,
   build: {
     outDir: "dist",

@@ -1,5 +1,6 @@
 import { createRoot, Root } from "react-dom/client";
 import { LiveLocatorApp } from "./LiveLocatorApp";
+import { StrictMode } from "react";
 
 const ELEMENT_TAG = "banner-live-locator";
 
@@ -43,7 +44,11 @@ class BannerLiveLocatorElement extends HTMLElement {
       this.remove();
     };
 
-    root.render(<LiveLocatorApp version={version} onClose={handleClose} />);
+    root.render(
+      <StrictMode>
+        <LiveLocatorApp version={version} onClose={handleClose} />
+      </StrictMode>
+    );
 
     this.state = { root, version };
 
@@ -75,7 +80,9 @@ class BannerLiveLocatorElement extends HTMLElement {
     };
 
     this.state.root.render(
-      <LiveLocatorApp version={nextVersion} onClose={handleClose} />
+      <StrictMode>
+        <LiveLocatorApp version={nextVersion} onClose={handleClose} />
+      </StrictMode>
     );
     this.state.version = nextVersion;
     console.log("[banner-tool] Live Locator version updated", {
