@@ -11,48 +11,33 @@ const LIVE_LOCATOR_TRIGGER_VALUES = new Set(["1", "true", "yes"]);
 
 const version = "dev";
 
-function createBannerElement(): HTMLElement {
-  const container = document.createElement("div");
-  container.className = "banner-tool-banner";
-  container.style.padding = "12px";
-  container.style.margin = "8px 0";
-  container.style.backgroundColor = "#1f2937";
-  container.style.color = "#f9fafb";
-  container.style.borderRadius = "8px";
-  container.style.fontFamily = "system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif";
-  container.style.boxShadow = "0 4px 10px rgba(0,0,0,0.15)";
-  container.dataset.bannerTool = "banner";
-  container.textContent = "This is a banner injected by Banner Tool";
-  return container;
-}
+function insertBannerAt(location: BannerLocation): void {
+  const banner = document.createElement("div");
+  banner.className = "banner-tool-banner";
+  banner.style.padding = "12px";
+  banner.style.margin = "8px 0";
+  banner.style.backgroundColor = "#1f2937";
+  banner.style.color = "#f9fafb";
+  banner.style.borderRadius = "8px";
+  banner.style.fontFamily =
+    "system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif";
+  banner.style.boxShadow = "0 4px 10px rgba(0,0,0,0.15)";
+  banner.dataset.bannerTool = "banner";
+  banner.textContent = "This is a banner injected by Banner Tool";
 
-async function loadBannerConfig(url: string): Promise<BannerConfig | null> {
-  try {
-    const response = await fetch(url, { cache: "no-store" });
-    if (!response.ok) {
-      console.warn(`[banner-tool] Failed to fetch config: ${response.status}`);
-      return null;
-    }
-    return (await response.json()) as BannerConfig;
-  } catch (error) {
-    console.warn("[banner-tool] Unable to fetch banner config", error);
-    return null;
-  }
-}
-
-function insertBannerAt(location: BannerLocation, banner: HTMLElement): void {
   const target = document.querySelector(location.selector);
   if (!target || !target.parentElement) {
     console.warn(`[banner-tool] Selector not found: ${location.selector}`);
     return;
   }
 
-  const clonedBanner = banner.cloneNode(true) as HTMLElement;
-  target.insertAdjacentElement("afterend", clonedBanner);
+  target.insertAdjacentElement("afterend", banner);
 }
 
 function shouldLoadLiveLocator(): boolean {
-  const param = new URL(window.location.href).searchParams.get(LIVE_LOCATOR_PARAM);
+  const param = new URL(window.location.href).searchParams.get(
+    LIVE_LOCATOR_PARAM
+  );
   if (!param) {
     return false;
   }
@@ -71,7 +56,8 @@ function ensureModuleScript(url: string, id: string): Promise<void> {
           existing.addEventListener("load", () => resolve(), { once: true });
           existing.addEventListener(
             "error",
-            () => reject(new Error(`[banner-tool] Failed to load script: ${url}`)),
+            () =>
+              reject(new Error(`[banner-tool] Failed to load script: ${url}`)),
             { once: true }
           );
         });
@@ -118,11 +104,23 @@ async function ensureLiveLocatorLoaded(): Promise<HTMLElement> {
       `;
       document.head.appendChild(script);
 
-      await ensureModuleScript("http://localhost:5174/@react-refresh", "react-refresh-dev");
-      liveLocatorScriptPromise = ensureModuleScript("http://localhost:5174/src/live-locator.tsx", "banner-live-locator-dev");
+      await ensureModuleScript(
+        "http://localhost:5174/@react-refresh",
+        "react-refresh-dev"
+      );
+      liveLocatorScriptPromise = ensureModuleScript(
+        "http://localhost:5174/src/live-locator.tsx",
+        "banner-live-locator-dev"
+      );
     } else {
-      const url = new URL(/* @vite-ignore */`live-locator/live-locator.js?v=${version}`, import.meta.url).href;
-      liveLocatorScriptPromise = ensureModuleScript(url, "banner-live-locator-prod");
+      const url = new URL(
+        /* @vite-ignore */ `live-locator/live-locator.js?v=${version}`,
+        import.meta.url
+      ).href;
+      liveLocatorScriptPromise = ensureModuleScript(
+        url,
+        "banner-live-locator-prod"
+      );
     }
   }
 
@@ -157,7 +155,7 @@ async function loadLiveLocator(): Promise<void> {
           next.setAttribute("version", version);
           document.body.appendChild(next);
         }
-      }
+      },
     };
   } catch (error) {
     liveLocatorScriptPromise = null;
@@ -171,14 +169,12 @@ async function init(): Promise<void> {
   };
 
   const configUrl = new URL("banner-locations.json", window.location.href).href;
-  const config = await loadBannerConfig(configUrl);
-  if (!config) {
-    return;
-  }
 
-  const bannerTemplate = createBannerElement();
+  const response = await fetch(configUrl, { cache: "no-store" });
+  const config = (await response.json()) as BannerConfig;
+
   for (const location of config.locations) {
-    insertBannerAt(location, bannerTemplate);
+    insertBannerAt(location);
   }
 
   await loadLiveLocator();
