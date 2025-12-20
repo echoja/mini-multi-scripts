@@ -7,7 +7,6 @@ interface BannerConfig {
 }
 
 const LIVE_LOCATOR_PARAM = "liveLocator";
-const LIVE_LOCATOR_TRIGGER_VALUES = new Set(["1", "true", "yes"]);
 
 const version = "dev";
 
@@ -34,20 +33,10 @@ function insertBannerAt(location: BannerLocation): void {
   target.insertAdjacentElement("afterend", banner);
 }
 
-function shouldLoadLiveLocator(): boolean {
-  const param = new URL(window.location.href).searchParams.get(
-    LIVE_LOCATOR_PARAM
-  );
-  if (!param) {
-    return false;
-  }
-  return LIVE_LOCATOR_TRIGGER_VALUES.has(param.toLowerCase());
-}
-
 const LIVE_LOCATOR_TAG = "banner-live-locator";
 let liveLocatorScriptPromise: Promise<void> | null = null;
 
-function ensureModuleScript(url: string, id: string): Promise<void> {
+function loadScript(url: string, id: string): Promise<void> {
   const existing = document.getElementById(id) as HTMLScriptElement | null;
   if (existing) {
     return existing.dataset.ready === "true"
@@ -90,73 +79,53 @@ function ensureModuleScript(url: string, id: string): Promise<void> {
   });
 }
 
-async function ensureLiveLocatorLoaded(): Promise<HTMLElement> {
-  if (!liveLocatorScriptPromise) {
-    if (import.meta.env.DEV) {
-      // await ensureModuleScript("http://localhost:5174/@vite/client", "vite-client-dev");
-      const script = document.createElement("script");
-      script.type = "module";
-      script.textContent = `
+async function loadLiveLocator(): Promise<void> {
+  const param = new URL(window.location.href).searchParams.get(
+    LIVE_LOCATOR_PARAM
+  );
+  if (param !== "1") {
+    return;
+  }
+
+  try {
+    if (!liveLocatorScriptPromise) {
+      if (import.meta.env.DEV) {
+        const script = document.createElement("script");
+        script.type = "module";
+        script.textContent = `
         import { injectIntoGlobalHook } from "http://localhost:5174/@react-refresh";
         injectIntoGlobalHook(window);
         window.$RefreshReg$ = () => {};
         window.$RefreshSig$ = () => (type) => type;
       `;
-      document.head.appendChild(script);
+        document.head.appendChild(script);
 
-      await ensureModuleScript(
-        "http://localhost:5174/@react-refresh",
-        "react-refresh-dev"
-      );
-      liveLocatorScriptPromise = ensureModuleScript(
-        "http://localhost:5174/src/live-locator.tsx",
-        "banner-live-locator-dev"
-      );
-    } else {
-      const url = new URL(
-        /* @vite-ignore */ `live-locator/live-locator.js?v=${version}`,
-        import.meta.url
-      ).href;
-      liveLocatorScriptPromise = ensureModuleScript(
-        url,
-        "banner-live-locator-prod"
-      );
+        liveLocatorScriptPromise = loadScript(
+          "http://localhost:5174/src/live-locator.tsx",
+          "banner-live-locator-dev"
+        );
+      } else {
+        const url = new URL(
+          /* @vite-ignore */ `live-locator/live-locator.js?v=${version}`,
+          import.meta.url
+        ).href;
+        liveLocatorScriptPromise = loadScript(url, "banner-live-locator-prod");
+      }
     }
-  }
 
-  await liveLocatorScriptPromise;
-  await customElements.whenDefined(LIVE_LOCATOR_TAG);
+    await liveLocatorScriptPromise;
+    await customElements.whenDefined(LIVE_LOCATOR_TAG);
 
-  let element = document.querySelector(LIVE_LOCATOR_TAG) as HTMLElement | null;
-  if (!element) {
-    element = document.createElement(LIVE_LOCATOR_TAG);
-    element.setAttribute("version", version);
-    document.body.appendChild(element);
-  } else {
-    element.setAttribute("version", version);
-  }
-
-  return element;
-}
-
-async function loadLiveLocator(): Promise<void> {
-  if (!shouldLoadLiveLocator()) {
-    return;
-  }
-  try {
-    const element = await ensureLiveLocatorLoaded();
-    window.__BANNER_LIVE_LOCATOR__ = {
-      version,
-      element,
-      close: () => document.querySelector(LIVE_LOCATOR_TAG)?.remove(),
-      open: () => {
-        if (!document.querySelector(LIVE_LOCATOR_TAG)) {
-          const next = document.createElement(LIVE_LOCATOR_TAG);
-          next.setAttribute("version", version);
-          document.body.appendChild(next);
-        }
-      },
-    };
+    let element = document.querySelector(
+      LIVE_LOCATOR_TAG
+    ) as HTMLElement | null;
+    if (!element) {
+      element = document.createElement(LIVE_LOCATOR_TAG);
+      element.setAttribute("version", version);
+      document.body.appendChild(element);
+    } else {
+      element.setAttribute("version", version);
+    }
   } catch (error) {
     liveLocatorScriptPromise = null;
     console.warn("[banner-tool] Failed to bootstrap live locator", error);
@@ -164,10 +133,6 @@ async function loadLiveLocator(): Promise<void> {
 }
 
 async function init(): Promise<void> {
-  window.__BANNER_TOOL__ = {
-    version,
-  };
-
   const configUrl = new URL("banner-locations.json", window.location.href).href;
 
   const response = await fetch(configUrl, { cache: "no-store" });
@@ -181,20 +146,6 @@ async function init(): Promise<void> {
 }
 
 export {};
-
-declare global {
-  interface Window {
-    __BANNER_TOOL__?: {
-      version: string;
-    };
-    __BANNER_LIVE_LOCATOR__?: {
-      version: string;
-      element: HTMLElement;
-      open: () => void;
-      close: () => void;
-    };
-  }
-}
 
 if (document.readyState === "loading") {
   document.addEventListener(
