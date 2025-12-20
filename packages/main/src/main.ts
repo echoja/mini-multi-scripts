@@ -6,8 +6,6 @@ interface BannerConfig {
   locations: BannerLocation[];
 }
 
-const LIVE_LOCATOR_PARAM = "liveLocator";
-
 const version = "dev";
 
 function insertBannerAt(location: BannerLocation): void {
@@ -38,6 +36,7 @@ let liveLocatorScriptPromise: Promise<void> | null = null;
 
 function loadScript(url: string, id: string): Promise<void> {
   const existing = document.getElementById(id) as HTMLScriptElement | null;
+
   if (existing) {
     return existing.dataset.ready === "true"
       ? Promise.resolve()
@@ -80,9 +79,7 @@ function loadScript(url: string, id: string): Promise<void> {
 }
 
 async function loadLiveLocator(): Promise<void> {
-  const param = new URL(window.location.href).searchParams.get(
-    LIVE_LOCATOR_PARAM
-  );
+  const param = new URL(window.location.href).searchParams.get("liveLocator");
   if (param !== "1") {
     return;
   }
