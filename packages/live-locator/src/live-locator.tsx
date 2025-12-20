@@ -4,19 +4,6 @@ import { LiveLocatorApp } from "./LiveLocatorApp";
 const ELEMENT_TAG = "banner-live-locator";
 
 declare global {
-  interface Window {
-    __BANNER_LIVE_LOCATOR__?: {
-      version: string;
-      baseUrl: string;
-      destroy: () => void;
-    };
-
-    __BANNER_TOOL__?: {
-      version: string;
-      assetBase: string;
-    };
-  }
-
   interface HTMLElementTagNameMap {
     "banner-live-locator": BannerLiveLocatorElement;
   }
@@ -43,10 +30,9 @@ class BannerLiveLocatorElement extends HTMLElement {
 
     const mountPoint = document.createElement("div");
     mountPoint.id = "banner-live-locator-root";
-    shadowRoot.append(mountPoint)
+    shadowRoot.append(mountPoint);
 
-    const version =
-      this.getAttribute("version") ?? window.__BANNER_TOOL__?.version ?? "dev";
+    const version = this.getAttribute("version") ?? "dev";
 
     const root = createRoot(mountPoint);
     const handleClose = () => {
