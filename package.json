@@ -21,6 +21,6 @@
   "devDependencies": {
     "@types/node": "^24.8.1",
     "babel-plugin-react-compiler": "^1.0.0",
-    "npm-run-all2": "^5.0.0"
+    "npm-run-all2": "^8.0.0"
   }
 }
