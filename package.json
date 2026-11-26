@@ -19,7 +19,7 @@
   "author": "",
   "license": "MIT",
   "devDependencies": {
-    "@types/node": "^24.8.1",
+    "@types/node": "^26.0.0",
     "babel-plugin-react-compiler": "^1.0.0",
     "npm-run-all2": "^5.0.0"
   }
